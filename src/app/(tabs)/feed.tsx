@@ -1,4 +1,4 @@
-import { FlatList, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { FlatList, StyleSheet, View } from 'react-native'
 import React from 'react'
 import Post from '@/src/components/feed/post'
 
@@ -51,12 +51,7 @@ const posts = [
 
 const Feed = () => {
   return (
-    <ScrollView style={styles.container}>
-      <FlatList
-        data={posts}
-        renderItem={({ item }) => <Post {...item} />}
-        keyExtractor={item => item.id.toString()} />
-    </ScrollView>
+    <FlatList style={styles.container} data={posts} renderItem={({ item }) => <Post {...item} />} keyExtractor={item => item.id.toString()} />
   )
 }
 
@@ -66,6 +61,6 @@ const styles = StyleSheet.create({
   container: {
     display: 'flex',
     flexDirection: 'column',
-    padding: 20
+    padding: 10
   }
 })
