@@ -25,7 +25,7 @@ const MeetupCard = ({ meetup }: MeetupCardProps) => {
       <Text>Date: {meetup.date}</Text>
       <Text>Time: {meetup.time}</Text>
       <Text>Status: {meetup.status}</Text>
-      <MeetupButtons />
+      { meetup.status === 'Pending' && <MeetupButtons />}
     </View>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "expo-router";
 import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import KudoButton from "./kudo-button";
 import CommentButton from "./comment-button";
@@ -9,6 +10,11 @@ import ShareButton from "./share-button";
 
 const Post = ({ post }: { post: PostWithExtras }) => {
   const [showFullText, setShowFullText] = useState(false);
+
+  if(post.imageUrl && !post.imageUrl.startsWith('http')) {
+    post.imageUrl = `http://192.168.100.66:3000/${post.imageUrl}`;
+    console.log(post.imageUrl);
+  }
 
   const toggleShowFullText = () => {
     setShowFullText((prevState) => !prevState);
