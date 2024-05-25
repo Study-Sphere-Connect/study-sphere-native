@@ -4,6 +4,7 @@ import { View, TextInput, Text, Button, Image, StyleSheet, Alert, Touchable, Tou
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 
 interface ImageType {
@@ -38,8 +39,6 @@ const CreatePost = () => {
         name: fileName,
         type: fileType
       });
-
-      console.log(image)
     }
   }
 

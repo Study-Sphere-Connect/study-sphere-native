@@ -20,7 +20,6 @@ const Feed = () => {
       })
 
       if(res.status === 200) {
-        console.log(res.data[1]);
         setPosts(res.data);
       }
     } catch (error) {
@@ -36,7 +35,7 @@ const Feed = () => {
   return (
     <>
       <CreatePost />
-      <FlatList style={styles.container} data={posts} renderItem={({ item }) => <Post post={item} />} keyExtractor={item => item.id.toString()} />
+      <FlatList style={styles.container} data={posts} renderItem={({ item }) => <Post post={item} />} keyExtractor={item => item.id.toString()} extraData={posts} />
     </>
   )
 }
