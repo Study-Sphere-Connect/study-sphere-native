@@ -1,24 +1,30 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { Button } from 'tamagui'
 import { MessageCircle } from '@tamagui/lucide-icons'
 
 const CommentButton = () => {
+  const handleComment = () => {
+
+  };
+
   return (
-    <Button style={styles.button} iconAfter={MessageCircle}>
-      Comment
-    </Button>
+    <View style={styles.container}>
+      <TouchableOpacity onPress={handleComment}>
+        <MessageCircle size={24} />
+      </TouchableOpacity>
+      <Text>6.1K</Text>
+    </View>
   )
 }
 
 export default CommentButton
 
 const styles = StyleSheet.create({
-  button: {
+  container: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'teal',
-    color: 'white',
+    gap: 5
   }
 })

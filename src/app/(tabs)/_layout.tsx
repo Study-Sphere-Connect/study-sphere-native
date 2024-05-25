@@ -42,6 +42,13 @@ export default function TabLayout() {
           href: null
         }}
       />
+      <Tabs.Screen
+        name='meetup-room'
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none'}
+        }}
+      />
     </Tabs>
   );
 }

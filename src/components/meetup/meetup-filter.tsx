@@ -9,11 +9,16 @@ const items = [
     { name: 'Rejected' },
 ];
 
-const MeetupFilter = () => {
+interface MeetupFilterProps {
+    onStatusChange: (status: string) => void;
+}
+
+const MeetupFilter = ({ onStatusChange }: MeetupFilterProps) => {
   const [selectedItem, setSelectedItem] = useState('All');
 
   const handleItemChange = (item: string) => {
     setSelectedItem(item);
+    onStatusChange(item);
   };
 
   return (

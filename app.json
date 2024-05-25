@@ -29,7 +29,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Study Sphere to access your photos",
+          "cameraPermission": "Allow Study Sphere to access your camera",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }

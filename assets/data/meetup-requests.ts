@@ -15,7 +15,7 @@ const meetupRequests = [
     message: 'I need help with my coding assignment.',
     date: '2024-04-16',
     time: '2:00 PM',
-    status: 'Pending',
+    status: 'Rejected',
   },
   {
     id: 3,
@@ -26,7 +26,6 @@ const meetupRequests = [
     time: '11:00 AM',
     status: 'Pending',
   },
-  // Add more meetup request objects as needed
   {
     id: 4,
     menteeId: 'd1k29fh78oqwe',
@@ -34,7 +33,7 @@ const meetupRequests = [
     message: 'I have some questions about machine learning.',
     date: '2024-04-18',
     time: '3:30 PM',
-    status: 'Pending',
+    status: 'Rejected',
   },
   {
     id: 5,
@@ -70,7 +69,7 @@ const meetupRequests = [
     message: 'I need advice on starting a freelance business.',
     date: '2024-04-22',
     time: '4:00 PM',
-    status: 'Pending',
+    status: 'Rejected',
   },
   {
     id: 9,

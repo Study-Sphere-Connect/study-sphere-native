@@ -1,16 +1,27 @@
+import axios from 'axios';
 import { Link } from 'expo-router';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleRegister = () => {
-    console.log('Email:', email);
-    console.log('Password:', password);
-    router.navigate('/profile')
+  const handleLogin = async () => {
+    try {
+      const res = await axios.post(`${process.env.API_URL}/auth/signin`, { email, password })
+      
+      if(res.status === 200) {
+        Alert.alert('Success', 'You have successfully logged in!');
+        AsyncStorage.setItem('jwt', res.data);
+        AsyncStorage.setItem('isLoggedIn', JSON.stringify(true));
+        router.navigate('/profile')
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -31,7 +42,7 @@ const LoginForm = () => {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
       <Text style={{ marginTop: 20 }}>

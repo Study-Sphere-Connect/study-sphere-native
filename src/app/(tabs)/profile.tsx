@@ -1,16 +1,8 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-
-const personalInfoInput = [
-  {
-    label: 'Name',
-    value: 'Haider Ali',
-  },
-  {
-    label: 'Email',
-    value:  'haider.ali@gmail.com'
-  },
-];
+import React, { useEffect, useState } from 'react'
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Education, User } from '@/src/types';
 
 const educationalInfoInput = [
   {
@@ -44,34 +36,82 @@ const educationalInfoInput = [
 ];
 
 const Profile = () => {
+  const [user, setUser] = useState<User>();
+  const [education, setEducation] = useState<Education>();
+
+  useEffect(() => {
+    const getUserData = async () => {
+      const jwt = await AsyncStorage.getItem('jwt');
+
+      try {
+        const res = await axios.get(`${process.env.API_URL}/auth/userinfo`, {
+          headers: {
+            Authorization: `Bearer ${jwt}`
+          }
+        });
+
+        const educationRes = await axios.get(`${process.env.API_URL}/education/get`, {
+          headers: {
+            Authorization: `Bearer ${jwt}`
+          }
+        });
+
+        if(res.status === 200) {
+          setUser(res.data);
+        }
+
+        if(educationRes.status === 200) {
+          setEducation(educationRes.data);
+        }
+      } catch (error) {
+          console.error(error);
+      }
+    }
+
+    getUserData();
+  }, []);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{justifyContent: 'center', alignItems: 'center'}}>
       <View style={styles.header}>
         <Image source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMp0Ei0SHzCvu20wP3C1NOmoKZcsFsQW8dKg&s' }} width={100} height={100} borderRadius={100} />
-        <Text style={styles.name}>Haider Ali</Text>
-        <Text style={styles.institution}>Stanford University</Text>
-        <Pressable style={styles.button}>
+        <Text style={styles.name} >{user?.name}</Text>
+        <Text style={styles.email}>{user?.email}</Text>
+        { !education?.isVerified && <Pressable style={styles.button}>
           <Text style={{ color: 'white' }}>Submit Verification Request</Text>
-        </Pressable>
+        </Pressable>}
       </View>
       <View style={styles.main}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personal Information</Text>
-          {personalInfoInput.map((input, index) => (
-            <View style={styles.inputContainer} key={index}>
-              <Text style={styles.inputLabel}>{input.label}:</Text>
-              <Text style={styles.inputText}>{input.value}</Text>
-            </View>
-          ))}
-        </View>
-        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Educational Information</Text>
-          {educationalInfoInput.map((input, index) => (
-            <View style={styles.inputContainer} key={index}>
-              <Text style={styles.inputLabel}>{input.label}:</Text>
-              <Text style={styles.inputText}>{input.value}</Text>
-            </View>
-          ))}
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Institution</Text>
+            <Text style={styles.inputText}>{education?.institution}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Country</Text>
+            <Text style={styles.inputText}>{education?.country}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Level</Text>
+            <Text style={styles.inputText}>{education?.level}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Major</Text>
+            <Text style={styles.inputText}>{education?.major}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Start Year</Text>
+            <Text style={styles.inputText}>{education?.startYear}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>End Year</Text>
+            <Text style={styles.inputText}>{education?.endYear}</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Is Verified</Text>
+            <Text style={styles.inputText}>{education?.isVerified == true ? 'True' : 'False'}</Text>
+          </View>
         </View>
       </View>
     </ScrollView>
@@ -93,9 +133,10 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 24,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textTransform: 'capitalize'
   },
-  institution: {
+  email: {
     fontSize: 16,
     color: 'gray'
   },
