@@ -42,11 +42,6 @@ const ConversationDetail = () => {
 
   let flatListRef = useRef<FlatList>(null);
 
-  const scrollToBottom = () => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToEnd({ animated: true });
-    }
-  };
 
   const getMessages = async (id: string) => {
     try {
