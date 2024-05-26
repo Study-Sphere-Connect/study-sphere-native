@@ -5,7 +5,7 @@ import { Link } from 'expo-router'
 interface ConversationProps {
   id: number
   name: string
-  time: string
+  // time: string
   lastMessage: string
   profilePhoto: string
 }
@@ -18,7 +18,7 @@ const ConversationItem = ({ ...conversation }: ConversationProps) => {
         <View style={styles.content}>
           <View style={styles.nameTime}>
             <Text style={styles.name}>{conversation.name}</Text>
-            <Text style={styles.time}>{conversation.time}</Text>
+            {/* <Text style={styles.time}>{conversation.time}</Text> */}
           </View>
           <Text style={styles.message}>
             {conversation.lastMessage}
