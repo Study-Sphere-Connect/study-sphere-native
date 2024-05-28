@@ -1,8 +1,9 @@
-import { conversations } from "@/assets/data/conversations";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useState, useEffect, useRef } from "react";
+import { Pusher, PusherEvent } from "@pusher/pusher-websocket-react-native";
+
 import {
   StyleSheet,
   Text,
@@ -22,26 +23,67 @@ interface Message {
 }
 
 const ConversationDetail = () => {
+  //dummy user object
+  const user = {id:"clsw0qelu0000i6nx9s8cygje"};
+
   const { id } = useLocalSearchParams();
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+
+  const pusher = Pusher.getInstance();
+
+  const subscribeChannel = async () => {
+    try{
+
+      const channel = await pusher.subscribe({
+        channelName: id as string,
+        onEvent: (event: PusherEvent) => {
+        let data = JSON.parse(event.data);
+        let dataString = `${data.message}`;
+        let message:Message = JSON.parse(dataString);
+        
+        if(message.senderId != user.id)
+        {
+          setMessages((prevMessages) => [...prevMessages, message]);
+        }
+      },
+    });
+    await pusher.connect();
+    }
+    catch(ex)
+    {
+      console.log(ex);
+      Alert.alert("Error","Error Occurred!");
+    }
+  };
+
+  useEffect(() => {
+    const initPusher = async () => {
+      try {
+        await pusher.init({
+          apiKey: process.env.PUSHER_CLIENT_KEY!,
+          cluster: process.env.PUSHER_CLIENT_CLUSTER!,
+        });
+        await pusher.connect();
+        subscribeChannel();
+      } catch (error) {
+        console.error('Error initializing Pusher:', error);
+      }
+    };
+
+    initPusher();
+
+    return () => {
+      pusher.disconnect();
+    };
+  }, []);
+
 
   useEffect(() => {
     getMessages(id as string);
   }, [id]);
 
-
-  useEffect(() => {
-    console.log(id);
-  }, [id]);
-
-  useEffect(() => {
-    console.log("Message Data is coming");
-    console.log(messages);
-  }, [messages]);
-
   let flatListRef = useRef<FlatList>(null);
-
 
   const getMessages = async (id: string) => {
     try {
@@ -50,45 +92,46 @@ const ConversationDetail = () => {
       const res = await axios.get(`${process.env.API_URL}/message/${id}`, {
         headers: {
           Authorization: `Bearer ${jwt}`,
-        }
+        },
       });
 
       if (res.status === 200) {
         setMessages(res.data);
       }
-
-    } 
-    catch (error) {
+    } catch (error) {
       console.error(error);
     }
   };
 
-  const sendMessage = async (content:string) => {
+  const sendMessage = async (content: string) => {
     try {
       const jwt = await AsyncStorage.getItem("jwt");
-      
+
       const newMessage = {
         id: generateUniqueId(), // Function to generate a unique ID
         content: content,
         senderId: "clsw0qelu0000i6nx9s8cygje",
-        conversationId:messages[0].conversationId
+        conversationId: messages[0].conversationId,
       };
 
       setMessages((prevMessages) => [...prevMessages, newMessage]);
-  
+
       // Send the message to the server
-      const res = await axios.post(`${process.env.API_URL}/message/create`, newMessage, {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
-      });
-  
+      const res = await axios.post(
+        `${process.env.API_URL}/message/create`,
+        newMessage,
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
       if (res.status === 200) {
         // Update state with the new message
-        Alert.alert('Success', 'You have send message successfully!');
+        Alert.alert("Success", "You have send message successfully!");
       }
-    } 
-    catch (error) {
+    } catch (error) {
       console.error(error);
     }
   };
@@ -115,7 +158,7 @@ const ConversationDetail = () => {
             renderItem={({ item }) => (
               <View
                 style={
-                  item.senderId === "clsw0qelu0000i6nx9s8cygje"
+                  item.senderId === user.id
                     ? styles.myMessageContainer
                     : styles.otherMessageContainer
                 }
