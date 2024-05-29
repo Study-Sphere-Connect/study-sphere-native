@@ -4,37 +4,6 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Education, User } from '@/src/types';
 
-const educationalInfoInput = [
-  {
-    label: 'Institution Name',
-    value: 'Stanford University',
-  },
-  {
-    label: 'Country',
-    value: 'USA',
-  },
-  {
-    label: 'Education Level',
-    value: 'Master\'s',
-  },
-  {
-    label: 'Major',
-    value: 'Computer Science',
-  },
-  {
-    label: 'Is Education Verified',
-    value: 'Yes',
-  },
-  {
-    label: 'Start Year',
-    value: '2018',
-  },
-  {
-    label: 'End Year',
-    value: '2020',
-  },
-];
-
 const Profile = () => {
   const [user, setUser] = useState<User>();
   const [education, setEducation] = useState<Education>();
