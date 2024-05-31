@@ -33,7 +33,9 @@ const Post = ({ post }: { post: PostWithExtras }) => {
         )}
         <View>
           <View style={styles.nameTime}>
-            <Text style={styles.name}>{post.user.name}</Text>
+            <Link href={`/user/${post.userId}`}>
+              <Text style={styles.name}>{post.user.name}</Text>
+            </Link>
             <Text style={styles.color}>•</Text>
             <TimeAgo createdAt={post.createdAt} />
           </View>
