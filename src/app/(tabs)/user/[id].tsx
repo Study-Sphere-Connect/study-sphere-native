@@ -14,6 +14,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Education, User } from "@/src/types";
 import { useLocalSearchParams } from "expo-router";
+import Modal from "@/src/components/meetup-request/modal";
 
 const UserPage = () => {
   const { id } = useLocalSearchParams();
@@ -21,6 +22,7 @@ const UserPage = () => {
   const [education, setEducation] = useState<Education>();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -73,6 +75,7 @@ const UserPage = () => {
         />
       }
     >
+      <Modal modalVisible={modalVisible} setModalVisible={setModalVisible} />
       { loading ? (
         <ActivityIndicator size="large" color="black" />
       ) : (
@@ -102,7 +105,7 @@ const UserPage = () => {
             <TouchableOpacity style={styles.button}>
               <Text style={styles.buttonText}>Chat Now</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
               <Text style={styles.buttonText}>Request Meetup</Text>
             </TouchableOpacity>
           </View>
