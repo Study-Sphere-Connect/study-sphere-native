@@ -35,6 +35,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="subscription"
+        options={{
+          title: 'Subsciption',
+          tabBarIcon: ({ color }) => <FontAwesome size={28} name="credit-card" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="user/[id]"
         options={{
           title: 'User',

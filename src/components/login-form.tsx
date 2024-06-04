@@ -11,6 +11,7 @@ const LoginForm = () => {
 
   const handleLogin = async () => {
     try {
+      console.log(process.env.API_URL)
       const res = await axios.post(`${process.env.API_URL}/auth/signin`, { email, password })
       
       if(res.status === 200) {
