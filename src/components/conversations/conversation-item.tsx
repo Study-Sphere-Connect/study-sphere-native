@@ -1,6 +1,7 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View, ViewBase } from 'react-native'
-import React from 'react'
-import { Link } from 'expo-router'
+import React from 'react';
+import { Link } from 'expo-router';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 interface ConversationProps {
   id: number
@@ -18,7 +19,13 @@ const ConversationItem = ({ ...conversation }: ConversationProps) => {
       }} 
     asChild>
       <TouchableOpacity style={styles.container}>
-        <Image source={{ uri: conversation.profilePhoto }} style={styles.profilePhoto} />
+        {conversation.profilePhoto ? 
+          <Image source={{ uri: conversation.profilePhoto }} style={styles.profilePhoto} />
+        :
+        <View>
+          <FontAwesome size={38} style={{marginHorizontal:6}} name="user-circle-o" color={"teal"} />
+        </View>
+        }
         <View style={styles.content}>
           <View style={styles.nameTime}>
             <Text style={styles.name}>{conversation.name}</Text>
