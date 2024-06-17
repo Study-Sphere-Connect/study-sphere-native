@@ -3,20 +3,21 @@ import {
   StyleSheet,
   TextInput,
   Text,
-  TouchableOpacity,
-  ActivityIndicator,
+  TouchableOpacity
 } from "react-native";
 import { useState, useEffect } from "react";
 import getCurrentUser from "@/src/hooks/getCurrentUser";
 import { CurrentUser } from "@/src/types";
+import { HMSSDK } from "@100mslive/react-native-hms";
+import { Link, useRouter } from 'expo-router';
+import getHMSInstance from "@/src/lib/hms";
+
+// `build` method returns an instance of `HMSSDK` class
 const Meet = () => {
   const [roomCode, setRoomCode] = useState("");
   const [user, setUser] = useState<CurrentUser | null>(null);
-
-  const joinRoom = () => {
-    console.log(roomCode);
-  };
-
+  
+  const router = useRouter();
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -34,18 +35,33 @@ const Meet = () => {
     console.log(user);
   }, [user]);
 
-  
+  const handleSubmit = async () => {
+    try {
+      // const hmsInstance = await getHMSInstance();
+      // const authToken = await hmsInstance.getAuthTokenByRoomCode(roomCode);
+      // if(authToken)
+      // {
+      //   router.navigate(`/room/${authToken}`);
+      // }
+      router.navigate(`/room/123`);
+      // console.log(authToken);
 
+    } catch (error) {
+      console.error('Error getting auth token:', error);
+    }
+  }
+
+  
   return (    
     <View style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.inputLabel}>Enter Your Room Code</Text>
         <TextInput
           style={styles.input}
-          placeholder="ABCD-EFGH"
+          placeholder="xxx-xxxx-xxx"
           onChangeText={(val) => setRoomCode(val)}
         ></TextInput>
-        <TouchableOpacity style={styles.submitButton} onPress={joinRoom}>
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={{ color: "white", textAlign: "center" }}>Join</Text>
         </TouchableOpacity>
       </View>

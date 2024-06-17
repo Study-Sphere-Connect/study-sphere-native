@@ -1,8 +1,45 @@
 import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import { Feather } from '@expo/vector-icons';
-
+import { useLocalSearchParams } from 'expo-router';
+import getHMSInstance from "@/src/lib/hms";
+import {HMSConfig} from '@100mslive/react-native-hms';
+import { CurrentUser } from '@/src/types';
+import getCurrentUser from '@/src/hooks/getCurrentUser';
 const MeetupRoom = () => {
+  const { token } = useLocalSearchParams();
+  const [user, setUser] = useState<CurrentUser | null>(null);
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userData = await getCurrentUser();
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to fetch user", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(()=>{
+    const prejoin = async ()=>{
+      const hmsInstance = await getHMSInstance();
+      if(token)
+      {
+        const hmsConfig = new HMSConfig({
+          authToken: token as string,
+          username: user?.name!
+        });
+        hmsInstance.preview(hmsConfig);
+      }
+    }
+
+    prejoin();
+  },[token])
+
+  console.log(token)
   return (
     <View style={styles.container}>
       <View style={styles.topView}>
