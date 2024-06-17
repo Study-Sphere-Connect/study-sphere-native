@@ -12,7 +12,11 @@ interface ConversationProps {
 
 const ConversationItem = ({ ...conversation }: ConversationProps) => {
   return (
-    <Link href={`/conversations/${conversation.id}`} asChild>
+    <Link href={{
+      pathname: "/conversations/details",
+      params : { id:conversation.id, name:conversation.name },
+      }} 
+    asChild>
       <TouchableOpacity style={styles.container}>
         <Image source={{ uri: conversation.profilePhoto }} style={styles.profilePhoto} />
         <View style={styles.content}>
