@@ -47,7 +47,9 @@ const Feed = () => {
     <>
       {
         loading ?
-          <ActivityIndicator size="large" color="black" style={styles.loader} />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="black"/>
+        </View>
       : <>
         <CreatePost />
         <FlatList style={styles.container} data={posts} renderItem={({ item }) => <Post post={item} />} keyExtractor={item => item.id.toString()} extraData={posts} refreshControl={
@@ -70,7 +72,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     padding: 10
   },
-  loader: {
-    marginTop: 20
+  loaderContainer: {
+    flex:1,
+    justifyContent:'center',
+    alignItems:'center'
   }
 })
