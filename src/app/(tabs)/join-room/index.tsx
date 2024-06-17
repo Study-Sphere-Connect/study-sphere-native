@@ -8,32 +8,17 @@ import {
 import { useState, useEffect } from "react";
 import getCurrentUser from "@/src/hooks/getCurrentUser";
 import { CurrentUser } from "@/src/types";
-import { HMSSDK } from "@100mslive/react-native-hms";
 import { Link, useRouter } from 'expo-router';
 import getHMSInstance from "@/src/lib/hms";
 
 // `build` method returns an instance of `HMSSDK` class
 const Meet = () => {
   const [roomCode, setRoomCode] = useState("");
-  const [user, setUser] = useState<CurrentUser | null>(null);
+  
   
   const router = useRouter();
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userData = await getCurrentUser();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to fetch user", error);
-      }
-    };
+  
 
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    console.log(user);
-  }, [user]);
 
   const handleSubmit = async () => {
     try {
