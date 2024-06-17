@@ -43,7 +43,8 @@
     "react-native-screens": "3.31.1",
     "react-native-svg": "^15.2.0",
     "tamagui": "^1.94.4",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "expo-camera": "~15.0.11"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
