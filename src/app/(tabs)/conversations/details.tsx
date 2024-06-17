@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { JwtPayload, jwtDecode } from "jwt-decode";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useState, useEffect, useRef } from "react";
 import { Pusher, PusherEvent } from "@pusher/pusher-websocket-react-native";
@@ -14,6 +15,8 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import getCurrentUser from "@/src/hooks/getCurrentUser";
+import { CurrentUser } from "@/src/types";
 
 interface Message {
   id: string;
@@ -23,61 +26,59 @@ interface Message {
 }
 
 const ConversationDetail = () => {
-  //dummy user object
-  const user = {id:"clsw0qelu0000i6nx9s8cygje"};
-
-  const { id } = useLocalSearchParams();
+  const { id, name } = useLocalSearchParams();
+  console.log(id, name);
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [user, setUser] = useState<CurrentUser | null>(null);
 
   const pusher = Pusher.getInstance();
 
   const subscribeChannel = async () => {
-    try{
-
+    try {
       const channel = await pusher.subscribe({
         channelName: id as string,
         onEvent: (event: PusherEvent) => {
-        let data = JSON.parse(event.data);
-        let dataString = `${data.message}`;
-        let message:Message = JSON.parse(dataString);
-        
-        if(message.senderId != user.id)
-        {
-          setMessages((prevMessages) => [...prevMessages, message]);
-        }
-      },
-    });
-    await pusher.connect();
-    }
-    catch(ex)
-    {
+          let data = JSON.parse(event.data);
+          let dataString = `${data.message}`;
+          let message: Message = JSON.parse(dataString);
+
+          if (message.senderId != user?.id) {
+            setMessages((prevMessages) => [...prevMessages, message]);
+          }
+        },
+      });
+      await pusher.connect();
+    } catch (ex) {
       console.log(ex);
-      Alert.alert("Error","Error Occurred!");
+      Alert.alert("Error", "Error Occurred!");
     }
   };
 
   useEffect(() => {
-    const initPusher = async () => {
+    const initPusherAndFetchUser = async () => {
       try {
+        // Initialize Pusher
         await pusher.init({
           apiKey: process.env.PUSHER_CLIENT_KEY!,
           cluster: process.env.PUSHER_CLIENT_CLUSTER!,
         });
         await pusher.connect();
         subscribeChannel();
+
+        const currentUser = await getCurrentUser();
+        setUser(currentUser);
       } catch (error) {
-        console.error('Error initializing Pusher:', error);
+        console.error("Error initializing Pusher or fetching user:", error);
       }
     };
 
-    initPusher();
+    initPusherAndFetchUser();
 
     return () => {
       pusher.disconnect();
     };
   }, []);
-
 
   useEffect(() => {
     getMessages(id as string);
@@ -88,7 +89,6 @@ const ConversationDetail = () => {
   const getMessages = async (id: string) => {
     try {
       const jwt = await AsyncStorage.getItem("jwt");
-
       const res = await axios.get(`${process.env.API_URL}/message/${id}`, {
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -110,7 +110,7 @@ const ConversationDetail = () => {
       const newMessage = {
         id: generateUniqueId(), // Function to generate a unique ID
         content: content,
-        senderId: "clsw0qelu0000i6nx9s8cygje",
+        senderId: user?.id!,
         conversationId: messages[0].conversationId,
       };
 
@@ -147,46 +147,50 @@ const ConversationDetail = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <>
       {messages.length > 0 ? (
-        <>
-          <Stack.Screen options={{ title: "under development" }} />
-          <FlatList
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
-            ref={flatListRef}
-            data={messages || []}
-            renderItem={({ item }) => (
-              <View
-                style={
-                  item.senderId === user.id
-                    ? styles.myMessageContainer
-                    : styles.otherMessageContainer
-                }
-              >
-                <Text style={styles.messageText}>{item.content}</Text>
-              </View>
-            )}
-            keyExtractor={(item) => item.id.toString()}
-          />
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={newMessage}
-              onChangeText={setNewMessage}
-              placeholder="Type your message..."
+        <View style={styles.container}>
+          <>
+            <Stack.Screen options={{ title: name as string }} />
+            <FlatList
+              onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
+              ref={flatListRef}
+              data={messages || []}
+              renderItem={({ item }) => (
+                <View
+                  style={
+                    item.senderId === user?.id
+                      ? styles.myMessageContainer
+                      : styles.otherMessageContainer
+                  }
+                >
+                  <Text style={styles.messageText}>{item.content}</Text>
+                </View>
+              )}
+              keyExtractor={(item) => item.id.toString()}
             />
-            <TouchableOpacity
-              style={styles.sendButton}
-              onPress={handleSendMessage}
-            >
-              <Text style={styles.sendButtonText}>Send</Text>
-            </TouchableOpacity>
-          </View>
-        </>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={newMessage}
+                onChangeText={setNewMessage}
+                placeholder="Type your message..."
+              />
+              <TouchableOpacity
+                style={styles.sendButton}
+                onPress={handleSendMessage}
+              >
+                <Text style={styles.sendButtonText}>Send</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        </View>
       ) : (
-        <ActivityIndicator />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size={"large"} color={"black"} />
+        </View>
       )}
-    </View>
+    </>
   );
 };
 
@@ -240,6 +244,11 @@ const styles = StyleSheet.create({
   sendButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent:"center",
+    alignItems:"center"
   },
 });
 
