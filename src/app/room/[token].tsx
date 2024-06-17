@@ -1,19 +1,41 @@
-import { Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React, {useEffect, useState} from 'react'
-import { Feather } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import React, { useEffect, useRef, useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 import getHMSInstance from "@/src/lib/hms";
-import {HMSConfig} from '@100mslive/react-native-hms';
-import { CurrentUser } from '@/src/types';
-import getCurrentUser from '@/src/hooks/getCurrentUser';
+import {
+  HMSConfig,
+  HMSLocalPeer,
+  HMSRoom,
+  HMSSDK,
+  HMSTrack,
+  HMSUpdateListenerActions,
+} from "@100mslive/react-native-hms";
+import { CurrentUser } from "@/src/types";
+import getCurrentUser from "@/src/hooks/getCurrentUser";
+import Prejoin from "@/src/components/room/prejoin";
+
+import {
+  useCameraPermissions,
+  Camera,
+  useMicrophonePermissions,
+} from "expo-camera";
+
 const MeetupRoom = () => {
   const { token } = useLocalSearchParams();
   const [user, setUser] = useState<CurrentUser | null>(null);
-  
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [microphoneStatus, requestMicrophonePermission] = useMicrophonePermissions();
+  const hmsInstanceRef = useRef<HMSSDK | null>(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const userData = await getCurrentUser();
+        requestMicrophonePermission();
+        requestCameraPermission();
+        console.log(`Camera: ${cameraPermission}, Mic: ${microphoneStatus}`);
         setUser(userData);
       } catch (error) {
         console.error("Failed to fetch user", error);
@@ -21,116 +43,164 @@ const MeetupRoom = () => {
     };
 
     fetchUser();
+    return ()=>{
+      hmsInstanceRef.current?.leave();
+      console.log("CLEAN UP WORKING CORRECTLY!!!");
+    }
   }, []);
 
-  useEffect(()=>{
-    const prejoin = async ()=>{
-      const hmsInstance = await getHMSInstance();
-      if(token)
-      {
-        const hmsConfig = new HMSConfig({
-          authToken: token as string,
-          username: user?.name!
-        });
-        hmsInstance.preview(hmsConfig);
+  const onPreview = (data: { room: HMSRoom, previewTracks: HMSTrack[] }) => {
+    // You can use `previewTracks` to render preview for the local peer
+    console.log(data);
+    setIsLoading(false);
+  };
+  const onError =(data:any)=>{
+    console.log(data);
+  }
+
+  useEffect(() => {
+    const prejoin = async () => {
+      hmsInstanceRef.current = await getHMSInstance();
+
+      hmsInstanceRef.current.addEventListener(
+        HMSUpdateListenerActions.ON_PREVIEW,
+        onPreview
+      );
+      hmsInstanceRef.current.addEventListener(HMSUpdateListenerActions.ON_ERROR, onError);
+      // hmsInstanceRef.addEventListener(HMSUpdateListenerActions.ON_JOIN, onJoin);
+      if (token) {
+        try {
+          console.log(user);
+          const hmsConfig = new HMSConfig({
+            authToken: token as string,
+            username: user?.name!,
+          });
+          console.log(hmsConfig);
+          hmsInstanceRef.current.preview(hmsConfig);
+          const localPeer: HMSLocalPeer = await hmsInstanceRef.current.getLocalPeer();
+        } catch (e) {
+          console.error(`Error Occurred ${e}`);
+        }
       }
-    }
+    };
 
     prejoin();
-  },[token])
+    return ()=>{hmsInstanceRef.current?.removeAllListeners()}
+  }, [token,user]);
 
-  console.log(token)
+  
+ 
   return (
-    <View style={styles.container}>
-      <View style={styles.topView}>
-        {/* Other User's Image */}
-        <View style={styles.otherImageContainer}>
-          <Image source={{ uri: 'https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aGVhZHNob3R8ZW58MHx8MHx8fDA%3D' }} style={styles.otherImage} />
-          <Text style={styles.otherUserName}>Alisha Jones</Text>
+    <>
+      {isLoading ? (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text>is Loading</Text>
         </View>
-        {/* Your Image Container */}
-        <View style={styles.yourImageContainer}>
-          <Image source={{ uri: 'https://images.unsplash.com/photo-1627161684458-a62da52b51c3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjd8fGhlYWRzaG90fGVufDB8fDB8fHww' }} style={styles.yourImage} />
+      ) : (
+        <View style={styles.container}>
+          <View style={styles.topView}>
+            {/* Other User's Image */}
+            <View style={styles.otherImageContainer}>
+              <Image
+                source={{
+                  uri: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aGVhZHNob3R8ZW58MHx8MHx8fDA%3D",
+                }}
+                style={styles.otherImage}
+              />
+              <Text style={styles.otherUserName}>Alisha Jones</Text>
+            </View>
+            {/* Your Image Container */}
+            <View style={styles.yourImageContainer}>
+              <Image
+                source={{
+                  uri: "https://images.unsplash.com/photo-1627161684458-a62da52b51c3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjd8fGhlYWRzaG90fGVufDB8fDB8fHww",
+                }}
+                style={styles.yourImage}
+              />
+            </View>
+          </View>
+          {/* Bottom Bar */}
+          <View style={styles.bottomBar}>
+            <TouchableOpacity style={styles.redButton}>
+              <Feather name="phone-off" size={24} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.greyButton}>
+              <Feather name="mic-off" size={24} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.greyButton}>
+              <Feather name="video-off" size={24} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-      {/* Bottom Bar */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.redButton}>
-          <Feather name="phone-off" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.greyButton}>
-          <Feather name="mic-off" size={24} color="white" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.greyButton}>
-          <Feather name="video-off" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  )
-}
+      )}
+    </>
+  );
+};
 
-export default MeetupRoom
+export default MeetupRoom;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: "black",
   },
   topView: {
     flex: 1,
-    position: 'relative',
+    position: "relative",
   },
   otherImageContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   otherUserName: {
-    position: 'absolute',
-    color: 'white',
-    backgroundColor: 'grey',
+    position: "absolute",
+    color: "white",
+    backgroundColor: "grey",
     padding: 10,
     borderRadius: 20,
     fontSize: 15,
     top: 30,
-    left: 30
+    left: 30,
   },
   otherImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
     borderRadius: 10,
   },
   yourImageContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 40,
     right: 40,
     width: 120,
     height: 120,
     borderRadius: 10,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   yourImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   bottomBar: {
     height: 60,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
   },
   redButton: {
-    backgroundColor: 'red',
+    backgroundColor: "red",
     padding: 10,
     borderRadius: 100,
   },
   greyButton: {
-    backgroundColor: 'grey',
+    backgroundColor: "grey",
     padding: 10,
     borderRadius: 100,
   },
-})
+});
