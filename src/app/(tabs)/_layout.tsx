@@ -50,9 +50,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='meet'
+        name='join-room'
         options={{
-          title: 'Meet',
+          title: 'Join',
           tabBarIcon:({color}) => <FontAwesome size={28} name="video-camera" color={color} />,
           headerShown: false
         }}

@@ -150,7 +150,6 @@ const ConversationDetail = () => {
     <>
       {messages.length > 0 ? (
         <View style={styles.container}>
-          <>
             <Stack.Screen options={{ title: name as string }} />
             <FlatList
               onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
@@ -183,7 +182,6 @@ const ConversationDetail = () => {
                 <Text style={styles.sendButtonText}>Send</Text>
               </TouchableOpacity>
             </View>
-          </>
         </View>
       ) : (
         <View style={styles.loaderContainer}>
