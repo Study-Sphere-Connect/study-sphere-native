@@ -13,25 +13,19 @@ import getHMSInstance from "@/src/lib/hms";
 
 // `build` method returns an instance of `HMSSDK` class
 const Meet = () => {
-  const [roomCode, setRoomCode] = useState("");
-  
+  const [roomCode, setRoomCode] = useState("mey-kkdk-qvv");
   
   const router = useRouter();
-  
-
-
   const handleSubmit = async () => {
     try {
-      // const hmsInstance = await getHMSInstance();
-      // const authToken = await hmsInstance.getAuthTokenByRoomCode(roomCode);
-      // if(authToken)
-      // {
-      //   router.navigate(`/room/${authToken}`);
-      // }
-      router.navigate(`/room/123`);
-      // console.log(authToken);
-
-    } catch (error) {
+      const hmsInstance = await getHMSInstance();
+      const authToken = await hmsInstance.getAuthTokenByRoomCode(roomCode);
+      if(authToken)
+      {
+        router.navigate(`/room/${authToken}`);
+      }
+    } 
+    catch (error) {
       console.error('Error getting auth token:', error);
     }
   }
