@@ -1,19 +1,31 @@
-import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import React, { useEffect, useRef, useState } from "react";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import getHMSInstance from "@/src/lib/hms";
 import {
   HMSConfig,
   HMSLocalPeer,
+  HMSLocalVideoTrack,
+  HMSPeer,
   HMSRoom,
   HMSSDK,
+  HMSSpeaker,
   HMSTrack,
+  HMSTrackSource,
+  HMSTrackType,
   HMSUpdateListenerActions,
+  HMSVideoViewMode,
 } from "@100mslive/react-native-hms";
 import { CurrentUser } from "@/src/types";
 import getCurrentUser from "@/src/hooks/getCurrentUser";
-import Prejoin from "@/src/components/room/prejoin";
 
 import {
   useCameraPermissions,
@@ -22,20 +34,24 @@ import {
 } from "expo-camera";
 
 const MeetupRoom = () => {
+  const router = useRouter();
   const { token } = useLocalSearchParams();
   const [user, setUser] = useState<CurrentUser | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [microphoneStatus, requestMicrophonePermission] = useMicrophonePermissions();
   const hmsInstanceRef = useRef<HMSSDK | null>(null);
-
+  const [localTrack, setLocalTrack] = useState<HMSTrack | null>(null);
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const userData = await getCurrentUser();
-        requestMicrophonePermission();
-        requestCameraPermission();
-        console.log(`Camera: ${cameraPermission}, Mic: ${microphoneStatus}`);
+        await requestMicrophonePermission();
+        await Camera.getCameraPermissionsAsync();
+        await requestCameraPermission();
+        console.log(`Camera: `);
+        console.log(cameraPermission);
+        console.log(` Mic: `);
+        console.log(`${microphoneStatus}`);
         setUser(userData);
       } catch (error) {
         console.error("Failed to fetch user", error);
@@ -43,20 +59,11 @@ const MeetupRoom = () => {
     };
 
     fetchUser();
-    return ()=>{
+    return () => {
       hmsInstanceRef.current?.leave();
-      console.log("CLEAN UP WORKING CORRECTLY!!!");
-    }
+      console.log("CLEANUP FUNCTION RUNNING");
+    };
   }, []);
-
-  const onPreview = (data: { room: HMSRoom, previewTracks: HMSTrack[] }) => {
-    // You can use `previewTracks` to render preview for the local peer
-    console.log(data);
-    setIsLoading(false);
-  };
-  const onError =(data:any)=>{
-    console.log(data);
-  }
 
   useEffect(() => {
     const prejoin = async () => {
@@ -66,18 +73,25 @@ const MeetupRoom = () => {
         HMSUpdateListenerActions.ON_PREVIEW,
         onPreview
       );
-      hmsInstanceRef.current.addEventListener(HMSUpdateListenerActions.ON_ERROR, onError);
+      hmsInstanceRef.current.addEventListener(
+        HMSUpdateListenerActions.ON_ERROR,
+        onError
+      );
+      hmsInstanceRef.current.addEventListener(HMSUpdateListenerActions.ON_JOIN, onJoinListener);
       // hmsInstanceRef.addEventListener(HMSUpdateListenerActions.ON_JOIN, onJoin);
+      // hmsInstance obtained by build method
+      hmsInstanceRef.current.addEventListener(
+        HMSUpdateListenerActions.ON_SPEAKER,
+        onSpeaker
+      );
+
       if (token) {
         try {
-          console.log(user);
           const hmsConfig = new HMSConfig({
             authToken: token as string,
             username: user?.name!,
           });
-          console.log(hmsConfig);
           hmsInstanceRef.current.preview(hmsConfig);
-          const localPeer: HMSLocalPeer = await hmsInstanceRef.current.getLocalPeer();
         } catch (e) {
           console.error(`Error Occurred ${e}`);
         }
@@ -85,54 +99,137 @@ const MeetupRoom = () => {
     };
 
     prejoin();
-    return ()=>{hmsInstanceRef.current?.removeAllListeners()}
-  }, [token,user]);
+    return () => {
+      hmsInstanceRef.current?.removeAllListeners();
+    };
+  }, [token, user]);
 
-  
- 
+  const handleJoin = () => {
+    try
+    {
+      const hmsConfig = new HMSConfig({
+        authToken: token as string,
+        username: user?.name!,
+      });
+      hmsInstanceRef.current?.join(hmsConfig);
+      console.log("button clicked");
+
+    }
+    catch(error)
+    {
+      console.log("Error Occurred",error);
+    }
+  };
+
+  const handleCancel = () => {
+    router.navigate("/join-room");
+  };
+
+  // `onSpeaker` function will be invoked whenever active speaker changes in room
+  const onSpeaker = (data: HMSSpeaker[]) => {
+    // data is the list of `HMSSpeaker` objects
+    data.forEach((speaker: HMSSpeaker) =>
+      console.log("speaker audio level: ", speaker.level)
+    );
+  };
+
+  const onPreview = (data: { room: HMSRoom; previewTracks: HMSTrack[] }) => {
+    // You can use `previewTracks` to render preview for the local peer
+    const regularAudioTrack = data.previewTracks.find((previewTrack) => {
+      return (
+        previewTrack.source === HMSTrackSource.REGULAR &&
+        previewTrack.type === HMSTrackType.AUDIO
+      );
+    });
+    const regularVideoTrack = data.previewTracks.find((previewTrack) => {
+      return (
+        previewTrack.source === HMSTrackSource.REGULAR &&
+        previewTrack.type === HMSTrackType.VIDEO
+      );
+    });
+
+    if (regularVideoTrack) {
+      setLocalTrack(regularVideoTrack);
+    }
+  };
+
+
+  const onJoinListener = (data: { localPeer:HMSPeer, remotePeers:HMSPeer[] }) => {
+    console.log("Meet Joined",data);
+      // gets triggered when join is successful. You can navigate to other screens.
+      // use these objects to update your local and remote peers.
+  };
+
+  const onError = (data: any) => {
+    console.log(data);
+  };
+
+  const HmsView = hmsInstanceRef.current?.HmsView;
+  useEffect(() => {
+    console.log(HmsView);
+  }, [HmsView]);
+  useEffect(() => {
+    console.log("Local Track");
+    console.log(localTrack);
+  }, [localTrack]);
+
+  // Get Local Video Track from preview tracks
   return (
     <>
-      {isLoading ? (
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text>is Loading</Text>
-        </View>
-      ) : (
+      {localTrack && HmsView ? (
         <View style={styles.container}>
           <View style={styles.topView}>
             {/* Other User's Image */}
             <View style={styles.otherImageContainer}>
-              <Image
-                source={{
-                  uri: "https://plus.unsplash.com/premium_photo-1690407617542-2f210cf20d7e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aGVhZHNob3R8ZW58MHx8MHx8fDA%3D",
-                }}
-                style={styles.otherImage}
-              />
+              {HmsView &&
+                localTrack &&
+                localTrack.trackId &&
+                !localTrack.isMute() && (
+                  <HmsView
+                    style={{ height: "100%", width: "100%" }}
+                    trackId={localTrack?.trackId}
+                    key={localTrack.id}
+                    scaleType={HMSVideoViewMode.ASPECT_FILL}
+                    mirror={true}
+                  ></HmsView>
+                )}
               <Text style={styles.otherUserName}>Alisha Jones</Text>
-            </View>
-            {/* Your Image Container */}
-            <View style={styles.yourImageContainer}>
-              <Image
-                source={{
-                  uri: "https://images.unsplash.com/photo-1627161684458-a62da52b51c3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mjd8fGhlYWRzaG90fGVufDB8fDB8fHww",
-                }}
-                style={styles.yourImage}
-              />
             </View>
           </View>
           {/* Bottom Bar */}
           <View style={styles.bottomBar}>
-            <TouchableOpacity style={styles.redButton}>
-              <Feather name="phone-off" size={24} color="white" />
-            </TouchableOpacity>
             <TouchableOpacity style={styles.greyButton}>
               <Feather name="mic-off" size={24} color="white" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.greyButton}>
               <Feather name="video-off" size={24} color="white" />
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancel}
+            >
+              <Text style={{ color: "white", textAlign: "center" }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.commonButton}
+              onPress={handleJoin}
+            >
+              <Text style={{ color: "black", textAlign: "center" }}>Join</Text>
+            </TouchableOpacity>
           </View>
+        </View>
+      ) : (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "black",
+          }}
+        >
+          <ActivityIndicator size={"large"} color={"white"} />
         </View>
       )}
     </>
@@ -155,6 +252,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+  },
+  commonButton: {
+    display: "flex",
+    backgroundColor: "white",
+    width: 90,
+    padding: 10,
+    borderRadius: 10,
+  },
+  cancelButton: {
+    display: "flex",
+    borderColor: "white",
+    borderWidth: 1,
+    width: 90,
+    padding: 10,
+    borderRadius: 10,
   },
   otherUserName: {
     position: "absolute",
