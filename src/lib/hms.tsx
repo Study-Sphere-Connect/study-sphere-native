@@ -6,6 +6,7 @@ let hmsInstance: HMSSDK | null = null;
 const getHMSInstance = async () => {
   if (!hmsInstance) {
     hmsInstance = await HMSSDK.build({});
+    console.log("new Instance Gets Created")
   }
   return hmsInstance;
 };
