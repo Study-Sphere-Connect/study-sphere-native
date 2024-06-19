@@ -32,15 +32,20 @@ import {
   Camera,
   useMicrophonePermissions,
 } from "expo-camera";
+import RoomScreen from "@/src/components/room/room-screen";
+import { HMSProvider } from "@/src/lib/hmsProvider";
 
 const MeetupRoom = () => {
   const router = useRouter();
   const { token } = useLocalSearchParams();
   const [user, setUser] = useState<CurrentUser | null>(null);
+  const [isJoined, setIsJoined] = useState<boolean>(false);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [microphoneStatus, requestMicrophonePermission] = useMicrophonePermissions();
+  const [microphoneStatus, requestMicrophonePermission] =
+    useMicrophonePermissions();
   const hmsInstanceRef = useRef<HMSSDK | null>(null);
   const [localTrack, setLocalTrack] = useState<HMSTrack | null>(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -77,13 +82,12 @@ const MeetupRoom = () => {
         HMSUpdateListenerActions.ON_ERROR,
         onError
       );
-      hmsInstanceRef.current.addEventListener(HMSUpdateListenerActions.ON_JOIN, onJoinListener);
+      hmsInstanceRef.current.addEventListener(
+        HMSUpdateListenerActions.ON_JOIN,
+        onJoinListener
+      );
       // hmsInstanceRef.addEventListener(HMSUpdateListenerActions.ON_JOIN, onJoin);
       // hmsInstance obtained by build method
-      hmsInstanceRef.current.addEventListener(
-        HMSUpdateListenerActions.ON_SPEAKER,
-        onSpeaker
-      );
 
       if (token) {
         try {
@@ -105,33 +109,24 @@ const MeetupRoom = () => {
   }, [token, user]);
 
   const handleJoin = () => {
-    try
-    {
+    try {
       const hmsConfig = new HMSConfig({
         authToken: token as string,
         username: user?.name!,
       });
       hmsInstanceRef.current?.join(hmsConfig);
       console.log("button clicked");
-
-    }
-    catch(error)
-    {
-      console.log("Error Occurred",error);
+    } catch (error) {
+      console.log("Error Occurred", error);
     }
   };
 
   const handleCancel = () => {
+    hmsInstanceRef.current?.leave();
     router.navigate("/join-room");
   };
 
-  // `onSpeaker` function will be invoked whenever active speaker changes in room
-  const onSpeaker = (data: HMSSpeaker[]) => {
-    // data is the list of `HMSSpeaker` objects
-    data.forEach((speaker: HMSSpeaker) =>
-      console.log("speaker audio level: ", speaker.level)
-    );
-  };
+
 
   const onPreview = (data: { room: HMSRoom; previewTracks: HMSTrack[] }) => {
     // You can use `previewTracks` to render preview for the local peer
@@ -153,11 +148,14 @@ const MeetupRoom = () => {
     }
   };
 
-
-  const onJoinListener = (data: { localPeer:HMSPeer, remotePeers:HMSPeer[] }) => {
-    console.log("Meet Joined",data);
-      // gets triggered when join is successful. You can navigate to other screens.
-      // use these objects to update your local and remote peers.
+  const onJoinListener = (data: {
+    localPeer: HMSPeer;
+    remotePeers: HMSPeer[];
+  }) => {
+    console.log("Meet Joined", data);
+    setIsJoined(true);
+    // gets triggered when join is successful. You can navigate to other screens.
+    // use these objects to update your local and remote peers.
   };
 
   const onError = (data: any) => {
@@ -165,9 +163,7 @@ const MeetupRoom = () => {
   };
 
   const HmsView = hmsInstanceRef.current?.HmsView;
-  useEffect(() => {
-    console.log(HmsView);
-  }, [HmsView]);
+
   useEffect(() => {
     console.log("Local Track");
     console.log(localTrack);
@@ -175,64 +171,75 @@ const MeetupRoom = () => {
 
   // Get Local Video Track from preview tracks
   return (
-    <>
-      {localTrack && HmsView ? (
-        <View style={styles.container}>
-          <View style={styles.topView}>
-            {/* Other User's Image */}
-            <View style={styles.otherImageContainer}>
-              {HmsView &&
-                localTrack &&
-                localTrack.trackId &&
-                !localTrack.isMute() && (
-                  <HmsView
-                    style={{ height: "100%", width: "100%" }}
-                    trackId={localTrack?.trackId}
-                    key={localTrack.id}
-                    scaleType={HMSVideoViewMode.ASPECT_FILL}
-                    mirror={true}
-                  ></HmsView>
-                )}
-              <Text style={styles.otherUserName}>Alisha Jones</Text>
+    <HMSProvider>
+      {!isJoined ? (
+        <>
+          {localTrack && HmsView ? (
+            <View style={styles.container}>
+              <View style={styles.topView}>
+                {/* Other User's Image */}
+                <View style={styles.otherImageContainer}>
+                  {HmsView &&
+                    localTrack &&
+                    localTrack.trackId &&
+                    !localTrack.isMute() && (
+                      <HmsView
+                        style={{ height: "100%", width: "100%" }}
+                        trackId={localTrack?.trackId}
+                        key={localTrack.id}
+                        scaleType={HMSVideoViewMode.ASPECT_FILL}
+                        mirror={true}
+                      ></HmsView>
+                    )}
+                  <Text style={styles.otherUserName}>Alisha Jones</Text>
+                </View>
+              </View>
+              {/* Bottom Bar */}
+              <View style={styles.bottomBar}>
+                <TouchableOpacity style={styles.greyButton}>
+                  <Feather name="mic-off" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.greyButton}>
+                  <Feather name="video-off" size={24} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={handleCancel}
+                >
+                  <Text style={{ color: "white", textAlign: "center" }}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.commonButton}
+                  onPress={handleJoin}
+                >
+                  <Text style={{ color: "black", textAlign: "center" }}>
+                    Join
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-          {/* Bottom Bar */}
-          <View style={styles.bottomBar}>
-            <TouchableOpacity style={styles.greyButton}>
-              <Feather name="mic-off" size={24} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.greyButton}>
-              <Feather name="video-off" size={24} color="white" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={handleCancel}
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: "black",
+              }}
             >
-              <Text style={{ color: "white", textAlign: "center" }}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.commonButton}
-              onPress={handleJoin}
-            >
-              <Text style={{ color: "black", textAlign: "center" }}>Join</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "black",
-          }}
-        >
-          <ActivityIndicator size={"large"} color={"white"} />
-        </View>
-      )}
-    </>
+              <ActivityIndicator size={"large"} color={"white"} />
+            </View>
+          )}
+        </>
+      ) 
+      :
+      (
+        <RoomScreen/>
+      )
+    }
+    </HMSProvider>
   );
 };
 
