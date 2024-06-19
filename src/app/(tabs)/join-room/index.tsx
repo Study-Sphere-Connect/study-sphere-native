@@ -11,7 +11,6 @@ import { CurrentUser } from "@/src/types";
 import { Link, useRouter } from 'expo-router';
 import getHMSInstance from "@/src/lib/hms";
 
-// `build` method returns an instance of `HMSSDK` class
 const Meet = () => {
   const [roomCode, setRoomCode] = useState("mey-kkdk-qvv");
   
@@ -38,7 +37,7 @@ const Meet = () => {
         <TextInput
           style={styles.input}
           placeholder="xxx-xxxx-xxx"
-          onChangeText={(val) => setRoomCode(val)}
+          // onChangeText={(val) => setRoomCode(val)}
         ></TextInput>
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={{ color: "white", textAlign: "center" }}>Join</Text>
