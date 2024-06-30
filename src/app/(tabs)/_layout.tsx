@@ -49,14 +49,6 @@ export default function TabLayout() {
           href: null
         }}
       />
-      <Tabs.Screen
-        name='join-room'
-        options={{
-          title: 'Join',
-          tabBarIcon:({color}) => <FontAwesome size={28} name="video-camera" color={color} />,
-          headerShown: false
-        }}
-      />
     </Tabs>
   );
 }
