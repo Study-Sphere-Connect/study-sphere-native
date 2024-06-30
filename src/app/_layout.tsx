@@ -10,7 +10,8 @@ export default function AppLayout() {
         <Stack.Screen name='(auth)/register' options={{ headerShown: false }} />
         <Stack.Screen name='(auth)/login' options={{ headerShown: false }} />
         <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-    </Stack>
+        {/* <Stack.Screen name='room/[token]' options={{ headerShown: false }} /> */}
+      </Stack>
     </TamaguiProvider>
   );
 }

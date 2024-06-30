@@ -40,12 +40,10 @@ const Conversations = () => {
       keyExtractor={(item) => item.id.toString()}
       />
       :
-    <View style={{height: '100%'}}>
 
-      <View style={styles.container}>
-        <ActivityIndicator/>
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="black" />
       </View>
-    </View>
     }
     </>
   );
@@ -60,11 +58,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   loaderContainer: {
-    display:"flex",
-    flex:1,
-    flexDirection:"column",
+    flex: 1,
+    alignItems: "center",
     justifyContent: "center",
-    alignItems:"center",
   }
 
 });

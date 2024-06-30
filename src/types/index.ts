@@ -15,6 +15,18 @@ export interface User {
     isTwoFactorEnabled: boolean;
 }
 
+export interface CurrentUser {
+    bio: string | null;
+    email: string;
+    emailVerified: string; // You might want to use a more specific type like Date if you parse this string into a Date object
+    iat: number;
+    id: string;
+    image: string | null;
+    isTwoFactorEnabled: boolean;
+    name: string;
+    role: string;
+}
+
 export interface Education {
     id: string;
     userId: string;
@@ -32,4 +44,4 @@ enum EducationLevel {
     BACHELOR = "BACHELOR",
     MASTER = "MASTER",
     PHD = "PHD"
-  }
+}

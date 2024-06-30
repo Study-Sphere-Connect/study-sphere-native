@@ -24,7 +24,14 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.studyspherenative"
+      "package": "com.anonymous.studyspherenative",
+      "permissions": [
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CHANGE_NETWORK_STATE",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_CONNECT"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -38,6 +45,14 @@
           "photosPermission": "Allow Study Sphere to access your photos",
           "cameraPermission": "Allow Study Sphere to access your camera",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Study Sphere to access your camera",
+          "microphonePermission": "Allow Study Sphere to access your microphone",
+          "recordAudioAndroid": true
         }
       ]
     ],
