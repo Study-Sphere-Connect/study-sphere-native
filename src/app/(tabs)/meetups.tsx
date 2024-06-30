@@ -18,7 +18,7 @@ const Meetups = () => {
 
   return (
     <View style={styles.container}>
-      <Link href="meetup-room">Meetup Room</Link>
+            {/* <Link href="meetup-room">Meetup Room</Link> */}
       <MeetupFilter onStatusChange={handleStatusChange} />
       {filteredMeetupRequests.length > 0 ? (
         <FlatList
@@ -40,6 +40,7 @@ export default Meetups;
 
 const styles = StyleSheet.create({
   container: {
+    marginTop:20,
     flex: 1,
   },
   emptyContainer: {
