@@ -1,5 +1,5 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Education, User } from '@/src/types';
@@ -7,6 +7,7 @@ import { Education, User } from '@/src/types';
 const Profile = () => {
   const [user, setUser] = useState<User>();
   const [education, setEducation] = useState<Education>();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -32,13 +33,24 @@ const Profile = () => {
         if(educationRes.status === 200) {
           setEducation(educationRes.data);
         }
+
+        setLoading(false);
       } catch (error) {
           console.error(error);
+          setLoading(false);
       }
     }
 
     getUserData();
   }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{justifyContent: 'center', alignItems: 'center'}}>
@@ -79,7 +91,7 @@ const Profile = () => {
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Is Verified</Text>
-            <Text style={styles.inputText}>{education?.isVerified == true ? 'True' : 'False'}</Text>
+            <Text style={styles.inputText}>{education?.isVerified ? 'True' : 'False'}</Text>
           </View>
         </View>
       </View>
@@ -141,5 +153,10 @@ const styles = StyleSheet.create({
   },
   inputText: {
     flex: 3,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

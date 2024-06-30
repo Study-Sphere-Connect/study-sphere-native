@@ -45,8 +45,6 @@ const Subscription: React.FC = () => {
         headers: {
           Authorization: `Bearer ${jwt}`,
           'Content-Type': 'multipart/form-data', 
-
-
         },
       });
 
