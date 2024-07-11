@@ -3,7 +3,12 @@ import React from 'react'
 import { Button } from 'tamagui'
 import { MessageCircle } from '@tamagui/lucide-icons'
 
-const CommentButton = () => {
+interface CommentButtonProps {
+  commentsCount: number;
+}
+
+
+const CommentButton = ({commentsCount}:CommentButtonProps) => {
   const handleComment = () => {
 
   };
@@ -13,7 +18,7 @@ const CommentButton = () => {
       <TouchableOpacity onPress={handleComment}>
         <MessageCircle size={24} />
       </TouchableOpacity>
-      <Text>6.1K</Text>
+      <Text>{commentsCount}</Text>
     </View>
   )
 }
