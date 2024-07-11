@@ -10,7 +10,7 @@ import ShareButton from "./share-button";
 
 const Post = ({ post }: { post: PostWithExtras }) => {
   const [showFullText, setShowFullText] = useState(false);
-
+  console.log(post.comments.length);
   if(post.imageUrl && !post.imageUrl.startsWith('http')) {
     post.imageUrl = `http://192.168.100.66:3000/${post.imageUrl}`;
     console.log(post.imageUrl);
@@ -72,7 +72,7 @@ const Post = ({ post }: { post: PostWithExtras }) => {
         <View style={styles.postActions}>
           <View style={styles.kudoComment}>
             <KudoButton post={post} userId={post.userId} />
-            <CommentButton />
+            <CommentButton  commentsCount={post.comments.length}/>
           </View>
           <ShareButton />
         </View>
