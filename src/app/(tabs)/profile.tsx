@@ -4,7 +4,7 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Education, User } from '@/src/types';
-
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 const Profile = () => {
   const [user, setUser] = useState<User>();
   const [education, setEducation] = useState<Education>();
@@ -63,7 +63,14 @@ const Profile = () => {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{justifyContent: 'center', alignItems: 'center'}}>
       <View style={styles.header}>
-        <Image source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMp0Ei0SHzCvu20wP3C1NOmoKZcsFsQW8dKg&s' }} width={100} height={100} borderRadius={100} />
+      {user?.image ? 
+          <Image source={{ uri: user.image }}  width={100} height={100} borderRadius={100} />
+        :
+        <View>
+          <FontAwesome size={98} style={{marginHorizontal:6}} name="user-circle-o" color={"teal"} />
+        </View>
+        }
+        {/* <Image source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMp0Ei0SHzCvu20wP3C1NOmoKZcsFsQW8dKg&s' }} width={100} height={100} borderRadius={100} /> */}
         <Text style={styles.name} >{user?.name}</Text>
         <Text style={styles.email}>{user?.email}</Text>
         { !education?.isVerified && <Pressable style={styles.button}>
