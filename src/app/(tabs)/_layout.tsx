@@ -1,8 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
+import getCurrentUser from '@/src/hooks/getCurrentUser';
+import { CurrentUser } from '@/src/types';
 
 export default function TabLayout() {
+  const [user, setUser] = useState<CurrentUser | null>();
+  useEffect(()=>{
+    const getUserInfo = async ()=> {
+      try
+      {
+        const user = await getCurrentUser();
+        console.log(user);
+        if(user)
+          setUser(user);
+      }
+      catch(ex)
+      {
+        console.log(ex);
+      }
+    }
+
+    getUserInfo();
+    
+    console.log("Use Effect of tab working");
+  },[])
   return (
     <Tabs screenOptions={{ tabBarActiveTintColor: 'teal' }}>
       <Tabs.Screen
@@ -35,12 +57,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="subscription"
-        options={{
-          title: 'Subsciption',
-          tabBarIcon: ({ color }) => <FontAwesome size={28} name="credit-card" color={color} />,
-        }}
+      name="subscription"
+      options={{
+        title: 'Subsciption',
+        tabBarIcon: ({ color }) => <FontAwesome size={28} name="credit-card" color={color} />,
+      }}
       />
+      
       <Tabs.Screen
         name="user/[id]"
         options={{
@@ -48,6 +71,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <FontAwesome size={28} name="users" color={color} />,
           href: null
         }}
+      />
+      <Tabs.Screen
+      name="wallet"
+      options={{
+        title: 'Wallet',
+        tabBarIcon: ({ color }) => <FontAwesome size={28} name="money" color={color} />,
+      }}
       />
     </Tabs>
   );

@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { JwtPayload, jwtDecode } from "jwt-decode";
 import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useState, useEffect, useRef } from "react";
 import { Pusher, PusherEvent } from "@pusher/pusher-websocket-react-native";
@@ -42,7 +41,7 @@ const ConversationDetail = () => {
           let data = JSON.parse(event.data);
           let dataString = `${data.message}`;
           let message: Message = JSON.parse(dataString);
-
+          console.log(message);
           if (message.senderId != user?.id) {
             setMessages((prevMessages) => [...prevMessages, message]);
           }

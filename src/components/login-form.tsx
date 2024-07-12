@@ -1,17 +1,25 @@
 import axios from 'axios';
 import { Link } from 'expo-router';
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import getCurrentUser from '../hooks/getCurrentUser';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  const [isPending, setIsPending] = useState(false);
   const handleLogin = async () => {
+    setIsPending(true);
     try {
       console.log(process.env.API_URL)
+      const user = await getCurrentUser();
+      if(user)
+      {
+        router.navigate('/profile')
+        return;
+      }
       const res = await axios.post(`${process.env.API_URL}/auth/signin`, { email, password })
       
       if(res.status === 200) {
@@ -23,7 +31,27 @@ const LoginForm = () => {
     } catch (error) {
       console.error(error);
     }
+    setIsPending(false);
   };
+
+  const loggedInRedirection = async ()=>{
+    try{
+
+      const user = await getCurrentUser();
+      if(user)
+        {
+          router.navigate('/profile');
+        }
+      }
+      catch(ex)
+      {
+        console.error("Error Occurred on getting user from token",ex);
+      }
+  }
+
+  useEffect(()=>{
+    loggedInRedirection();
+  },[]);
 
   return (
     <View style={styles.container}>

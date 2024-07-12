@@ -1,8 +1,9 @@
 import { Picker } from '@react-native-picker/picker';
-import { Link } from 'expo-router';
-import React, { useState } from 'react';
+import { Link, router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import axios from "axios";
+import getCurrentUser from '../hooks/getCurrentUser';
 
 const RegisterForm = () => {
   const [name, setName] = useState('');
@@ -26,6 +27,28 @@ const RegisterForm = () => {
       console.error(error);
     }
   };
+
+  
+  const loggedInRedirection = async ()=>{
+    try{
+
+      const user = await getCurrentUser();
+      if(user)
+        {
+          router.navigate('/profile');
+        }
+      }
+      catch(ex)
+      {
+        console.error("Error Occurred on getting user from token",ex);
+      }
+  }
+
+  useEffect(()=>{
+    loggedInRedirection();
+  },[]);
+
+  
 
   return (
     <View style={styles.container}>
